@@ -1,0 +1,59 @@
+/* seed-design tokens/recipes are imported in layout.tsx (@seed-design/css/all.css) */
+
+:root {
+  color-scheme: light;
+
+  /* app-level tokens layered on top of seed */
+  --app-max-width: 480px;
+  --app-gutter: var(--seed-dimension-x4);
+
+  /* workout category accents */
+  --cat-lower: var(--seed-color-palette-carrot-500);
+  --cat-upper: var(--seed-color-palette-blue-500);
+  --cat-core: var(--seed-color-palette-purple-500);
+  --cat-cardio: var(--seed-color-palette-green-500);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100dvh;
+  background: var(--seed-color-bg-layer-basement);
+  color: var(--seed-color-fg-neutral);
+  font-family:
+    'Pretendard',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Apple SD Gothic Neo',
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* remove number input spinners */
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

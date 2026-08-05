@@ -1,0 +1,84 @@
+.header {
+  padding: calc(env(safe-area-inset-top) + 12px) var(--app-gutter) 16px;
+  background: var(--seed-color-bg-layer-default);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--seed-color-fg-neutral);
+}
+
+.settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-right: -8px;
+  border: none;
+  border-radius: var(--seed-radius-full);
+  background: transparent;
+  color: var(--seed-color-fg-neutral-muted);
+  cursor: pointer;
+
+  &:active {
+    background: var(--seed-color-bg-neutral-weak);
+  }
+}
+
+.card {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 16px;
+  border-radius: var(--seed-radius-r3);
+  background: linear-gradient(
+    135deg,
+    var(--seed-color-bg-brand-weak),
+    color-mix(in srgb, var(--seed-color-bg-brand-weak) 40%, transparent)
+  );
+}
+
+.cardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--seed-radius-full);
+  background: var(--seed-color-bg-brand-solid);
+  color: var(--seed-color-palette-static-white);
+}
+
+.cardBody {
+  min-width: 0;
+}
+
+.headline {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--seed-color-fg-neutral);
+}
+
+.reason {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--seed-color-fg-neutral-muted);
+}
+
+.badgeRow {
+  margin-top: 10px;
+}

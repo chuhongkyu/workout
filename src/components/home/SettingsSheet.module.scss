@@ -1,0 +1,66 @@
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accountLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--seed-color-fg-neutral-subtle);
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--seed-radius-r2);
+  background: var(--seed-color-bg-layer-fill);
+}
+
+.accountEmail {
+  font-size: 14px;
+  color: var(--seed-color-fg-neutral);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.signOutButton {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--seed-color-stroke-neutral-muted);
+  border-radius: var(--seed-radius-r1);
+  background: var(--seed-color-bg-layer-default);
+  color: var(--seed-color-fg-neutral);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:active {
+    opacity: 0.8;
+  }
+}
+
+.danger {
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+
+.resetButton {
+  padding: 10px 16px;
+  border: none;
+  border-radius: var(--seed-radius-r2);
+  background: var(--seed-color-bg-critical-weak);
+  color: var(--seed-color-fg-critical);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:active {
+    opacity: 0.8;
+  }
+}

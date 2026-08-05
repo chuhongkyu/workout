@@ -1,0 +1,28 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--seed-radius-full);
+  background: color-mix(in srgb, var(--badge-color) 12%, transparent);
+  color: var(--badge-color);
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.badge--sm {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.badge--md {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--badge-color);
+}
