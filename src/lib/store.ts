@@ -264,19 +264,38 @@ export const workoutStore = {
     return SERVER_SNAPSHOT;
   },
 
-  async signInWithEmail(email: string): Promise<void> {
+  /**
+   * 이메일+비밀번호 로그인. 계정이 없으면 자동 가입.
+   * 반환 코드로 UI가 메시지를 구분한다.
+   * @throws Error('WRONG_PASSWORD' | 'EMAIL_CONFIRM_REQUIRED' | 기타)
+   */
+  async signInOrSignUp(email: string, password: string): Promise<void> {
     const supabase = getSupabase();
     if (!supabase) {
       throw new Error('Supabase가 설정되지 않았습니다.');
     }
-    const redirectTo =
-      typeof window !== 'undefined' ? window.location.origin : undefined;
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
+    const em = email.trim();
+
+    const signIn = await supabase.auth.signInWithPassword({
+      email: em,
+      password,
     });
-    if (error) {
-      throw error;
+    if (!signIn.error) {
+      return;
+    }
+
+    // 로그인 실패 → 신규 가입 시도
+    const signUp = await supabase.auth.signUp({ email: em, password });
+    if (signUp.error) {
+      // 이미 가입된 이메일인데 로그인 실패 = 비밀번호 오류
+      if (/already registered|already been registered/i.test(signUp.error.message)) {
+        throw new Error('WRONG_PASSWORD');
+      }
+      throw signUp.error;
+    }
+    // 세션이 안 생기면 = 이메일 인증(Confirm email)이 켜져 있음
+    if (!signUp.data.session) {
+      throw new Error('EMAIL_CONFIRM_REQUIRED');
     }
   },
 
