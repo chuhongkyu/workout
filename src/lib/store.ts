@@ -1,0 +1,399 @@
+import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
+import type { Category, WorkoutEntry } from '@/lib/types';
+
+export interface NewWorkoutInput {
+  name: string;
+  sets: number;
+  reps: number;
+  weight: number;
+  category: Category;
+  date: string;
+}
+
+export type AuthStatus = 'loading' | 'signed_out' | 'signed_in';
+
+export interface StoreSnapshot {
+  configured: boolean;
+  authStatus: AuthStatus;
+  userId: string | null;
+  email: string | null;
+  profileName: string | null;
+  /** 프로필 조회를 한 번이라도 마쳤는지 (온보딩 필요 여부 판단용) */
+  profileLoaded: boolean;
+  entries: WorkoutEntry[];
+  /** 서버와 동기화 진행 중 */
+  syncing: boolean;
+}
+
+interface WorkoutRow {
+  id: string;
+  user_id: string;
+  name: string;
+  sets: number;
+  reps: number;
+  weight: number | string;
+  category: Category;
+  date: string;
+  sort_order: number;
+  created_at: string;
+}
+
+const SERVER_SNAPSHOT: StoreSnapshot = {
+  configured: isSupabaseConfigured,
+  authStatus: 'loading',
+  userId: null,
+  email: null,
+  profileName: null,
+  profileLoaded: false,
+  entries: [],
+  syncing: false,
+};
+
+let snapshot: StoreSnapshot = SERVER_SNAPSHOT;
+let initialized = false;
+let currentUserId: string | null = null;
+const listeners = new Set<() => void>();
+
+function emit(): void {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function set(patch: Partial<StoreSnapshot>): void {
+  snapshot = { ...snapshot, ...patch };
+  emit();
+}
+
+// ── 오프라인 캐시 (기기별 즉시 렌더용) ────────────────────────
+function entriesCacheKey(uid: string): string {
+  return `workout:cache:entries:v2:${uid}`;
+}
+function nameCacheKey(uid: string): string {
+  return `workout:cache:name:v2:${uid}`;
+}
+
+function loadEntriesCache(uid: string): WorkoutEntry[] {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+  try {
+    const raw = window.localStorage.getItem(entriesCacheKey(uid));
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? (parsed as WorkoutEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveEntriesCache(uid: string, entries: WorkoutEntry[]): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage.setItem(entriesCacheKey(uid), JSON.stringify(entries));
+  } catch {
+    // 무시
+  }
+}
+
+function loadNameCache(uid: string): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    return window.localStorage.getItem(nameCacheKey(uid));
+  } catch {
+    return null;
+  }
+}
+
+function saveNameCache(uid: string, name: string): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  try {
+    window.localStorage.setItem(nameCacheKey(uid), name);
+  } catch {
+    // 무시
+  }
+}
+
+function rowToEntry(row: WorkoutRow): WorkoutEntry {
+  return {
+    id: row.id,
+    name: row.name,
+    sets: row.sets,
+    reps: row.reps,
+    weight: Number(row.weight),
+    category: row.category,
+    date: row.date,
+    order: row.sort_order,
+    createdAt: new Date(row.created_at).getTime(),
+  };
+}
+
+/** 로컬 낙관적 업데이트 + 캐시 저장 */
+function applyEntries(entries: WorkoutEntry[]): void {
+  set({ entries });
+  if (currentUserId) {
+    saveEntriesCache(currentUserId, entries);
+  }
+}
+
+function createId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+// ── 세션 처리 ────────────────────────────────────────────────
+function handleSession(
+  session: { user?: { id?: string; email?: string } } | null,
+): void {
+  const uid = session?.user?.id ?? null;
+  const email = session?.user?.email ?? null;
+
+  if (!uid) {
+    currentUserId = null;
+    set({
+      authStatus: 'signed_out',
+      userId: null,
+      email: null,
+      profileName: null,
+      profileLoaded: false,
+      entries: [],
+      syncing: false,
+    });
+    return;
+  }
+
+  if (uid === currentUserId) {
+    // 토큰 갱신 등 — 데이터 유지
+    set({ email });
+    return;
+  }
+
+  currentUserId = uid;
+  const cachedName = loadNameCache(uid);
+  set({
+    authStatus: 'signed_in',
+    userId: uid,
+    email,
+    profileName: cachedName,
+    profileLoaded: cachedName !== null,
+    entries: loadEntriesCache(uid),
+    syncing: true,
+  });
+
+  // Supabase auth 콜백 내부에서 다른 supabase 호출을 await 하면 데드락 위험 → 지연 실행
+  setTimeout(() => {
+    void fetchAll(uid);
+  }, 0);
+}
+
+async function fetchAll(uid: string): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return;
+  }
+  set({ syncing: true });
+
+  const [profileResult, workoutsResult] = await Promise.all([
+    supabase.from('profiles').select('name').eq('id', uid).maybeSingle(),
+    supabase.from('workouts').select('*').eq('user_id', uid),
+  ]);
+
+  if (currentUserId !== uid) {
+    return; // 그새 로그아웃/전환됨
+  }
+
+  const rows = (workoutsResult.data as WorkoutRow[] | null) ?? [];
+  const entries = rows.map(rowToEntry);
+  saveEntriesCache(uid, entries);
+
+  const profileName =
+    (profileResult.data as { name: string } | null)?.name ?? null;
+  if (profileName) {
+    saveNameCache(uid, profileName);
+  }
+
+  set({ profileName, profileLoaded: true, entries, syncing: false });
+}
+
+function ensureInitialized(): void {
+  if (initialized) {
+    return;
+  }
+  initialized = true;
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    snapshot = { ...SERVER_SNAPSHOT };
+    return;
+  }
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    handleSession(session);
+  });
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && currentUserId) {
+        void fetchAll(currentUserId);
+      }
+    });
+  }
+}
+
+export const workoutStore = {
+  subscribe(listener: () => void): () => void {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  },
+
+  getSnapshot(): StoreSnapshot {
+    ensureInitialized();
+    return snapshot;
+  },
+
+  getServerSnapshot(): StoreSnapshot {
+    return SERVER_SNAPSHOT;
+  },
+
+  async signInWithEmail(email: string): Promise<void> {
+    const supabase = getSupabase();
+    if (!supabase) {
+      throw new Error('Supabase가 설정되지 않았습니다.');
+    }
+    const redirectTo =
+      typeof window !== 'undefined' ? window.location.origin : undefined;
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: redirectTo },
+    });
+    if (error) {
+      throw error;
+    }
+  },
+
+  async signOut(): Promise<void> {
+    const supabase = getSupabase();
+    if (!supabase) {
+      return;
+    }
+    await supabase.auth.signOut();
+  },
+
+  async setName(name: string): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    const trimmed = name.trim();
+    set({ profileName: trimmed, profileLoaded: true });
+    saveNameCache(uid, trimmed);
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: uid, name: trimmed });
+    if (error) {
+      void fetchAll(uid);
+    }
+  },
+
+  async addEntry(input: NewWorkoutInput): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    const sameDay = snapshot.entries.filter((e) => e.date === input.date);
+    const minOrder = sameDay.reduce((min, e) => Math.min(min, e.order), 0);
+    const entry: WorkoutEntry = {
+      id: createId(),
+      name: input.name.trim(),
+      sets: input.sets,
+      reps: input.reps,
+      weight: input.weight,
+      category: input.category,
+      date: input.date,
+      createdAt: Date.now(),
+      order: minOrder - 1,
+    };
+    applyEntries([...snapshot.entries, entry]);
+
+    const { error } = await supabase.from('workouts').insert({
+      id: entry.id,
+      user_id: uid,
+      name: entry.name,
+      sets: entry.sets,
+      reps: entry.reps,
+      weight: entry.weight,
+      category: entry.category,
+      date: entry.date,
+      sort_order: entry.order,
+    });
+    if (error) {
+      void fetchAll(uid);
+    }
+  },
+
+  async removeEntry(id: string): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    applyEntries(snapshot.entries.filter((e) => e.id !== id));
+    const { error } = await supabase.from('workouts').delete().eq('id', id);
+    if (error) {
+      void fetchAll(uid);
+    }
+  },
+
+  async reorderWithinDate(date: string, orderedIds: string[]): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    const orderMap = new Map<string, number>();
+    orderedIds.forEach((id, index) => orderMap.set(id, index));
+    applyEntries(
+      snapshot.entries.map((e) =>
+        e.date === date && orderMap.has(e.id)
+          ? { ...e, order: orderMap.get(e.id) as number }
+          : e,
+      ),
+    );
+
+    const results = await Promise.all(
+      orderedIds.map((id, index) =>
+        supabase.from('workouts').update({ sort_order: index }).eq('id', id),
+      ),
+    );
+    if (results.some((r) => r.error)) {
+      void fetchAll(uid);
+    }
+  },
+
+  async resetAll(): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    applyEntries([]);
+    const { error } = await supabase
+      .from('workouts')
+      .delete()
+      .eq('user_id', uid);
+    if (error) {
+      void fetchAll(uid);
+    }
+  },
+};
