@@ -1,17 +1,44 @@
 /* seed-design tokens/recipes are imported in layout.tsx (@seed-design/css/all.css) */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
   /* app-level tokens layered on top of seed */
   --app-max-width: 480px;
   --app-gutter: var(--seed-dimension-x4);
 
-  /* workout category accents */
+  /* BUTFITGROUND 브랜드: 다크 배경 + 네온 그린 */
+  --bf-green: #00e05a;
+  --bf-green-pressed: #00c24d;
+  --bf-on-green: #05140b; /* 네온 그린 위 어두운 글자/아이콘 */
+
+  /* workout category accents (다크 대응) */
   --cat-lower: var(--seed-color-palette-carrot-500);
   --cat-upper: var(--seed-color-palette-blue-500);
   --cat-core: var(--seed-color-palette-purple-500);
-  --cat-cardio: var(--seed-color-palette-green-500);
+  --cat-cardio: #34e7ff;
+}
+
+/* seed 다크 토큰 위에 브랜드 색을 그린으로 덮어씀 (dark-only 셀렉터로 특이도 맞춤) */
+:root[data-seed-color-mode='dark-only'] {
+  /* 브랜드 = 네온 그린 */
+  --seed-color-bg-brand-solid: var(--bf-green);
+  --seed-color-bg-brand-solid-pressed: var(--bf-green-pressed);
+  --seed-color-fg-brand: var(--bf-green);
+  --seed-color-bg-brand-weak: rgba(0, 224, 90, 0.16);
+  --seed-color-bg-brand-weak-pressed: rgba(0, 224, 90, 0.24);
+
+  /* 버핏그라운드 느낌의 near-black 배경 */
+  --seed-color-bg-layer-basement: #08090b;
+  --seed-color-bg-layer-default: #141519;
+  --seed-color-bg-layer-default-pressed: #1b1c21;
+  --seed-color-bg-layer-fill: #1d1f24;
+  --seed-color-bg-layer-floating: #191a1f;
+}
+
+/* 네온 그린 solid 버튼 위 라벨/아이콘은 어둡게 (버튼 안에서 white 토큰만 치환) */
+.seed-action-button--variant_brandSolid {
+  --seed-color-palette-static-white: var(--bf-on-green);
 }
 
 * {
