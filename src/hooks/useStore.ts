@@ -28,7 +28,7 @@ export function useStore() {
     entries: snapshot.entries,
     groups,
     syncing: snapshot.syncing,
-    signInWithEmail: workoutStore.signInWithEmail,
+    signInOrSignUp: workoutStore.signInOrSignUp,
     signOut: workoutStore.signOut,
     setName: workoutStore.setName,
     addEntry: workoutStore.addEntry,

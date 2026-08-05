@@ -19,9 +19,9 @@ export default function Page() {
     return null;
   }
 
-  // 로그아웃 상태 → 이메일 로그인
+  // 로그아웃 상태 → 이메일+비밀번호 로그인
   if (store.authStatus === 'signed_out') {
-    return <Login onSubmit={store.signInWithEmail} />;
+    return <Login onSubmit={store.signInOrSignUp} />;
   }
 
   // 로그인됨, 프로필 조회 중
