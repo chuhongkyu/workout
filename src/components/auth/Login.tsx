@@ -52,7 +52,7 @@ export function Login({ onSubmit }: LoginProps) {
         <div className={cx('logo')}>
           <IconDumbbellLine width={40} height={40} />
         </div>
-        <h1 className={cx('title')}>오운완 시작하기</h1>
+        <h1 className={cx('title')}>버핏 기록 시작하기</h1>
         <p className={cx('subtitle')}>
           이메일과 비밀번호로 로그인하면
           <br />

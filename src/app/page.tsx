@@ -41,6 +41,7 @@ export default function Page() {
       groups={store.groups}
       entries={store.entries}
       onAdd={store.addEntry}
+      onUpdate={store.updateEntry}
       onDelete={store.removeEntry}
       onReorder={store.reorderWithinDate}
       onRename={store.setName}

@@ -20,7 +20,7 @@ import { WorkoutRow } from '@/components/home/WorkoutRow';
 import { CATEGORY_META } from '@/lib/categories';
 import { formatMonthDay, formatRelative, formatWeekday } from '@/lib/date';
 import type { DateGroup as DateGroupData } from '@/lib/group';
-import type { Category } from '@/lib/types';
+import type { Category, WorkoutEntry } from '@/lib/types';
 import styles from '@/components/home/DateGroup.module.scss';
 
 const cx = classNames.bind(styles);
@@ -29,6 +29,7 @@ interface DateGroupProps {
   group: DateGroupData;
   expanded: boolean;
   onToggle: () => void;
+  onEdit: (entry: WorkoutEntry) => void;
   onDelete: (id: string) => void;
   onReorder: (date: string, orderedIds: string[]) => void;
 }
@@ -37,6 +38,7 @@ export function DateGroup({
   group,
   expanded,
   onToggle,
+  onEdit,
   onDelete,
   onReorder,
 }: DateGroupProps) {
@@ -110,7 +112,12 @@ export function DateGroup({
             >
               <ul className={cx('list')}>
                 {group.entries.map((entry) => (
-                  <WorkoutRow key={entry.id} entry={entry} onDelete={onDelete} />
+                  <WorkoutRow
+                    key={entry.id}
+                    entry={entry}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
                 ))}
               </ul>
             </SortableContext>

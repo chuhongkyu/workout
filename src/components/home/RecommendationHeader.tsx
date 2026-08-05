@@ -23,7 +23,9 @@ export function RecommendationHeader({
   return (
     <header className={cx('header')}>
       <div className={cx('topbar')}>
-        <span className={cx('brand')}>오운완</span>
+        <span className={cx('brand')}>
+          <span className={cx('brandAccent')}>BUTFIT</span> RECORD
+        </span>
         <button
           type="button"
           className={cx('settings')}

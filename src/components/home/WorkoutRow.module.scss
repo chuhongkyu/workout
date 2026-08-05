@@ -46,6 +46,16 @@
 .main {
   flex: 1;
   min-width: 0;
+  padding: 2px 4px;
+  border: none;
+  border-radius: var(--seed-radius-r1);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+
+  &:active {
+    background: var(--seed-color-bg-layer-default-pressed);
+  }
 }
 
 .titleRow {

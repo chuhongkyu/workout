@@ -29,7 +29,7 @@ export function Onboarding({ onSubmit }: OnboardingProps) {
         <div className={cx('logo')}>
           <IconDumbbellLine width={40} height={40} />
         </div>
-        <h1 className={cx('title')}>오운완에 오신 걸 환영해요</h1>
+        <h1 className={cx('title')}>버핏 기록에 오신 걸 환영해요</h1>
         <p className={cx('subtitle')}>
           매일의 운동을 기록하고
           <br />

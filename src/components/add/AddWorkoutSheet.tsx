@@ -7,13 +7,15 @@ import { useState } from 'react';
 import { TextField } from '@/components/ui/TextField';
 import { CATEGORY_LIST } from '@/lib/categories';
 import { kstDateString } from '@/lib/date';
-import type { Category } from '@/lib/types';
+import type { Category, WorkoutEntry } from '@/lib/types';
 import type { NewWorkoutInput } from '@/hooks/useStore';
 import styles from '@/components/add/AddWorkoutSheet.module.scss';
 
 const cx = classNames.bind(styles);
 
 interface AddWorkoutSheetProps {
+  /** 있으면 수정 모드, 없으면 추가 모드 */
+  initial?: WorkoutEntry;
   onClose: () => void;
   onSubmit: (input: NewWorkoutInput) => void;
 }
@@ -28,13 +30,20 @@ function toWeight(value: string): number {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 }
 
-export function AddWorkoutSheet({ onClose, onSubmit }: AddWorkoutSheetProps) {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<Category>('lower');
-  const [sets, setSets] = useState('3');
-  const [reps, setReps] = useState('10');
-  const [weight, setWeight] = useState('');
-  const [date, setDate] = useState(() => kstDateString());
+export function AddWorkoutSheet({
+  initial,
+  onClose,
+  onSubmit,
+}: AddWorkoutSheetProps) {
+  const isEdit = Boolean(initial);
+  const [name, setName] = useState(initial?.name ?? '');
+  const [category, setCategory] = useState<Category>(initial?.category ?? 'lower');
+  const [sets, setSets] = useState(initial ? String(initial.sets) : '3');
+  const [reps, setReps] = useState(initial ? String(initial.reps) : '10');
+  const [weight, setWeight] = useState(
+    initial && initial.weight > 0 ? String(initial.weight) : '',
+  );
+  const [date, setDate] = useState(() => initial?.date ?? kstDateString());
 
   const canSubmit =
     name.trim().length > 0 && toPositiveInt(sets) > 0 && toPositiveInt(reps) > 0;
@@ -55,7 +64,12 @@ export function AddWorkoutSheet({ onClose, onSubmit }: AddWorkoutSheetProps) {
   };
 
   return (
-    <div className={cx('overlay')} role="dialog" aria-modal="true" aria-label="운동 기록 추가">
+    <div
+      className={cx('overlay')}
+      role="dialog"
+      aria-modal="true"
+      aria-label={isEdit ? '운동 기록 수정' : '운동 기록 추가'}
+    >
       <button
         type="button"
         className={cx('scrim')}
@@ -65,7 +79,7 @@ export function AddWorkoutSheet({ onClose, onSubmit }: AddWorkoutSheetProps) {
       <div className={cx('sheet')}>
         <div className={cx('grabber')} aria-hidden />
         <div className={cx('sheetHeader')}>
-          <h2 className={cx('sheetTitle')}>운동 기록</h2>
+          <h2 className={cx('sheetTitle')}>{isEdit ? '운동 수정' : '운동 기록'}</h2>
           <button
             type="button"
             className={cx('close')}
@@ -167,7 +181,7 @@ export function AddWorkoutSheet({ onClose, onSubmit }: AddWorkoutSheetProps) {
             disabled={!canSubmit}
             style={{ width: '100%' }}
           >
-            기록하기
+            {isEdit ? '저장' : '기록하기'}
           </ActionButton>
         </div>
       </div>

@@ -7,7 +7,9 @@ import {
   IconTrashcanLine,
 } from '@karrotmarket/react-monochrome-icon';
 import classNames from 'classnames/bind';
+import { useState } from 'react';
 import { CategoryBadge } from '@/components/ui/CategoryBadge';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import type { WorkoutEntry } from '@/lib/types';
 import styles from '@/components/home/WorkoutRow.module.scss';
 
@@ -15,12 +17,15 @@ const cx = classNames.bind(styles);
 
 interface WorkoutRowProps {
   entry: WorkoutEntry;
+  onEdit: (entry: WorkoutEntry) => void;
   onDelete: (id: string) => void;
 }
 
-export function WorkoutRow({ entry, onDelete }: WorkoutRowProps) {
+export function WorkoutRow({ entry, onEdit, onDelete }: WorkoutRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: entry.id });
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -43,7 +48,12 @@ export function WorkoutRow({ entry, onDelete }: WorkoutRowProps) {
         <IconDothorizline3VerticalLine width={18} height={18} />
       </button>
 
-      <div className={cx('main')}>
+      <button
+        type="button"
+        className={cx('main')}
+        onClick={() => onEdit(entry)}
+        aria-label={`${entry.name} 수정`}
+      >
         <div className={cx('titleRow')}>
           <span className={cx('name')}>{entry.name}</span>
           <CategoryBadge category={entry.category} />
@@ -59,16 +69,26 @@ export function WorkoutRow({ entry, onDelete }: WorkoutRowProps) {
             </>
           ) : null}
         </div>
-      </div>
+      </button>
 
       <button
         type="button"
         className={cx('delete')}
-        onClick={() => onDelete(entry.id)}
+        onClick={() => setConfirmOpen(true)}
         aria-label={`${entry.name} 삭제`}
       >
         <IconTrashcanLine width={18} height={18} />
       </button>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="기록을 삭제할까요?"
+        description={`'${entry.name}' 기록이 삭제돼요. 되돌릴 수 없어요.`}
+        confirmLabel="삭제"
+        destructive
+        onConfirm={() => onDelete(entry.id)}
+      />
     </li>
   );
 }

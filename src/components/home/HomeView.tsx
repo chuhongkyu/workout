@@ -21,6 +21,7 @@ interface HomeViewProps {
   groups: DateGroupData[];
   entries: WorkoutEntry[];
   onAdd: (input: NewWorkoutInput) => void;
+  onUpdate: (id: string, input: NewWorkoutInput) => void;
   onDelete: (id: string) => void;
   onReorder: (date: string, orderedIds: string[]) => void;
   onRename: (name: string) => void;
@@ -34,6 +35,7 @@ export function HomeView({
   groups,
   entries,
   onAdd,
+  onUpdate,
   onDelete,
   onReorder,
   onRename,
@@ -41,6 +43,7 @@ export function HomeView({
   onSignOut,
 }: HomeViewProps) {
   const [addOpen, setAddOpen] = useState(false);
+  const [editing, setEditing] = useState<WorkoutEntry | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   // 사용자가 직접 토글한 날짜만 기록. 그 외에는 최신 날짜(첫 그룹)만 펼침.
   const [overrides, setOverrides] = useState<Map<string, boolean>>(new Map());
@@ -89,6 +92,7 @@ export function HomeView({
                 group={group}
                 expanded={isExpanded(group.date, index)}
                 onToggle={() => toggle(group.date, index)}
+                onEdit={setEditing}
                 onDelete={onDelete}
                 onReorder={onReorder}
               />
@@ -108,6 +112,13 @@ export function HomeView({
 
       {addOpen ? (
         <AddWorkoutSheet onClose={() => setAddOpen(false)} onSubmit={onAdd} />
+      ) : null}
+      {editing ? (
+        <AddWorkoutSheet
+          initial={editing}
+          onClose={() => setEditing(null)}
+          onSubmit={(input) => onUpdate(editing.id, input)}
+        />
       ) : null}
       {settingsOpen ? (
         <SettingsSheet

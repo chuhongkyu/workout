@@ -4,6 +4,7 @@ import { ActionButton } from '@seed-design/react';
 import { IconXmarkLine } from '@karrotmarket/react-monochrome-icon';
 import classNames from 'classnames/bind';
 import { useState } from 'react';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { TextField } from '@/components/ui/TextField';
 import styles from '@/components/add/AddWorkoutSheet.module.scss';
 import local from '@/components/home/SettingsSheet.module.scss';
@@ -29,6 +30,7 @@ export function SettingsSheet({
   onSignOut,
 }: SettingsSheetProps) {
   const [name, setName] = useState(currentName);
+  const [resetOpen, setResetOpen] = useState(false);
   const trimmed = name.trim();
 
   const handleSave = () => {
@@ -39,13 +41,8 @@ export function SettingsSheet({
   };
 
   const handleReset = () => {
-    const ok = window.confirm(
-      '모든 운동 기록을 삭제할까요?\n이 작업은 되돌릴 수 없어요.',
-    );
-    if (ok) {
-      onResetAll();
-      onClose();
-    }
+    onResetAll();
+    onClose();
   };
 
   const handleSignOut = () => {
@@ -94,7 +91,11 @@ export function SettingsSheet({
           ) : null}
 
           <div className={lx('danger')}>
-            <button type="button" className={lx('resetButton')} onClick={handleReset}>
+            <button
+              type="button"
+              className={lx('resetButton')}
+              onClick={() => setResetOpen(true)}
+            >
               모든 기록 삭제
             </button>
           </div>
@@ -112,6 +113,16 @@ export function SettingsSheet({
           </ActionButton>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={resetOpen}
+        onOpenChange={setResetOpen}
+        title="모든 기록을 삭제할까요?"
+        description="이 작업은 되돌릴 수 없어요."
+        confirmLabel="전체 삭제"
+        destructive
+        onConfirm={handleReset}
+      />
     </div>
   );
 }
