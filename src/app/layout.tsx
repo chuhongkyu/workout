@@ -3,12 +3,12 @@ import '@seed-design/css/all.css';
 import '@/app/globals.scss';
 
 export const metadata: Metadata = {
-  title: '오운완 · 운동 기록',
+  title: '버핏 기록 · BUTFIT RECORD',
   description: '하루하루 운동을 기록하고, 오늘의 운동을 추천받으세요.',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: '오운완',
+    title: '버핏 기록',
   },
 };
 

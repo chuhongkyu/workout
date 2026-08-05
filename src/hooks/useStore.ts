@@ -32,6 +32,7 @@ export function useStore() {
     signOut: workoutStore.signOut,
     setName: workoutStore.setName,
     addEntry: workoutStore.addEntry,
+    updateEntry: workoutStore.updateEntry,
     removeEntry: workoutStore.removeEntry,
     reorderWithinDate: workoutStore.reorderWithinDate,
     resetAll: workoutStore.resetAll,

@@ -361,6 +361,43 @@ export const workoutStore = {
     }
   },
 
+  async updateEntry(id: string, input: NewWorkoutInput): Promise<void> {
+    const uid = currentUserId;
+    const supabase = getSupabase();
+    if (!uid || !supabase) {
+      return;
+    }
+    applyEntries(
+      snapshot.entries.map((e) =>
+        e.id === id
+          ? {
+              ...e,
+              name: input.name.trim(),
+              sets: input.sets,
+              reps: input.reps,
+              weight: input.weight,
+              category: input.category,
+              date: input.date,
+            }
+          : e,
+      ),
+    );
+    const { error } = await supabase
+      .from('workouts')
+      .update({
+        name: input.name.trim(),
+        sets: input.sets,
+        reps: input.reps,
+        weight: input.weight,
+        category: input.category,
+        date: input.date,
+      })
+      .eq('id', id);
+    if (error) {
+      void fetchAll(uid);
+    }
+  },
+
   async removeEntry(id: string): Promise<void> {
     const uid = currentUserId;
     const supabase = getSupabase();
