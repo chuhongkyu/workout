@@ -23,6 +23,10 @@ export interface StoreSnapshot {
   entries: WorkoutEntry[];
   /** 서버와 동기화 진행 중 */
   syncing: boolean;
+  /** 기록 목록을 한 번이라도 성공적으로 받아왔는지 */
+  entriesLoaded: boolean;
+  /** 마지막 목록 조회가 실패했는지 (네트워크 등) */
+  loadError: boolean;
 }
 
 interface WorkoutRow {
@@ -47,6 +51,8 @@ const SERVER_SNAPSHOT: StoreSnapshot = {
   profileLoaded: false,
   entries: [],
   syncing: false,
+  entriesLoaded: false,
+  loadError: false,
 };
 
 let snapshot: StoreSnapshot = SERVER_SNAPSHOT;
@@ -193,6 +199,8 @@ function handleSession(
   }, 0);
 }
 
+const FETCH_TIMEOUT_MS = 10_000;
+
 async function fetchAll(uid: string): Promise<void> {
   const supabase = getSupabase();
   if (!supabase) {
@@ -200,26 +208,57 @@ async function fetchAll(uid: string): Promise<void> {
   }
   set({ syncing: true });
 
-  const [profileResult, workoutsResult] = await Promise.all([
-    supabase.from('profiles').select('name').eq('id', uid).maybeSingle(),
-    supabase.from('workouts').select('*').eq('user_id', uid),
-  ]);
+  // 응답이 너무 오래 걸리면(행업 등) 에러로 처리해 재시도 UI를 띄운다
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    if (currentUserId === uid) {
+      set({ profileLoaded: true, syncing: false, loadError: true });
+    }
+  }, FETCH_TIMEOUT_MS);
 
-  if (currentUserId !== uid) {
-    return; // 그새 로그아웃/전환됨
+  try {
+    const [profileResult, workoutsResult] = await Promise.all([
+      supabase.from('profiles').select('name').eq('id', uid).maybeSingle(),
+      supabase.from('workouts').select('*').eq('user_id', uid),
+    ]);
+    clearTimeout(timer);
+    if (timedOut || currentUserId !== uid) {
+      return;
+    }
+
+    // 프로필: 조회 에러면 캐시 이름 유지 (에러를 "프로필 없음"으로 오인 방지)
+    const profileName = profileResult.error
+      ? (snapshot.profileName ?? null)
+      : ((profileResult.data as { name: string } | null)?.name ?? null);
+
+    // 목록 조회 실패: 기존(캐시) 목록 유지하고 에러 표시 — 빈 목록으로 덮지 않음
+    if (workoutsResult.error) {
+      set({ profileName, profileLoaded: true, syncing: false, loadError: true });
+      return;
+    }
+
+    const rows = (workoutsResult.data as WorkoutRow[] | null) ?? [];
+    const entries = rows.map(rowToEntry);
+    saveEntriesCache(uid, entries);
+    if (profileName) {
+      saveNameCache(uid, profileName);
+    }
+
+    set({
+      profileName,
+      profileLoaded: true,
+      entries,
+      syncing: false,
+      entriesLoaded: true,
+      loadError: false,
+    });
+  } catch {
+    clearTimeout(timer);
+    if (!timedOut && currentUserId === uid) {
+      set({ profileLoaded: true, syncing: false, loadError: true });
+    }
   }
-
-  const rows = (workoutsResult.data as WorkoutRow[] | null) ?? [];
-  const entries = rows.map(rowToEntry);
-  saveEntriesCache(uid, entries);
-
-  const profileName =
-    (profileResult.data as { name: string } | null)?.name ?? null;
-  if (profileName) {
-    saveNameCache(uid, profileName);
-  }
-
-  set({ profileName, profileLoaded: true, entries, syncing: false });
 }
 
 function ensureInitialized(): void {
@@ -239,8 +278,17 @@ function ensureInitialized(): void {
   });
 
   if (typeof document !== 'undefined') {
+    // 탭이 다시 보일 때(오랜만에 복귀 포함) 최신화
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && currentUserId) {
+        void fetchAll(currentUserId);
+      }
+    });
+  }
+  if (typeof window !== 'undefined') {
+    // 네트워크 복구 시 최신화
+    window.addEventListener('online', () => {
+      if (currentUserId) {
         void fetchAll(currentUserId);
       }
     });
@@ -262,6 +310,13 @@ export const workoutStore = {
 
   getServerSnapshot(): StoreSnapshot {
     return SERVER_SNAPSHOT;
+  },
+
+  /** 수동 새로고침 (재시도 버튼 등) */
+  refetch(): void {
+    if (currentUserId) {
+      void fetchAll(currentUserId);
+    }
   },
 
   /**

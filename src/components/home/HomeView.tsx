@@ -1,10 +1,12 @@
 'use client';
 
+import { ActionButton } from '@seed-design/react';
 import { IconDumbbellLine, IconPlusLine } from '@karrotmarket/react-monochrome-icon';
 import classNames from 'classnames/bind';
 import { useMemo, useState } from 'react';
 import { AddWorkoutSheet } from '@/components/add/AddWorkoutSheet';
 import { DateGroup } from '@/components/home/DateGroup';
+import { HomeSkeleton } from '@/components/home/HomeSkeleton';
 import { RecommendationHeader } from '@/components/home/RecommendationHeader';
 import { SettingsSheet } from '@/components/home/SettingsSheet';
 import { recommend } from '@/lib/recommend';
@@ -20,6 +22,9 @@ interface HomeViewProps {
   email: string | null;
   groups: DateGroupData[];
   entries: WorkoutEntry[];
+  syncing: boolean;
+  loadError: boolean;
+  onRetry: () => void;
   onAdd: (input: NewWorkoutInput) => void;
   onUpdate: (id: string, input: NewWorkoutInput) => void;
   onDelete: (id: string) => void;
@@ -34,6 +39,9 @@ export function HomeView({
   email,
   groups,
   entries,
+  syncing,
+  loadError,
+  onRetry,
   onAdd,
   onUpdate,
   onDelete,
@@ -74,17 +82,7 @@ export function HomeView({
       />
 
       <main className={cx('main')}>
-        {groups.length === 0 ? (
-          <div className={cx('empty')}>
-            <div className={cx('emptyIcon')}>
-              <IconDumbbellLine width={32} height={32} />
-            </div>
-            <p className={cx('emptyTitle')}>아직 기록이 없어요</p>
-            <p className={cx('emptyText')}>
-              아래 + 버튼으로 첫 운동을 기록해보세요.
-            </p>
-          </div>
-        ) : (
+        {groups.length > 0 ? (
           <div className={cx('groups')}>
             {groups.map((group, index) => (
               <DateGroup
@@ -97,6 +95,33 @@ export function HomeView({
                 onReorder={onReorder}
               />
             ))}
+          </div>
+        ) : syncing ? (
+          <HomeSkeleton />
+        ) : loadError ? (
+          <div className={cx('empty')}>
+            <div className={cx('emptyIcon')}>
+              <IconDumbbellLine width={32} height={32} />
+            </div>
+            <p className={cx('emptyTitle')}>기록을 불러오지 못했어요</p>
+            <p className={cx('emptyText')}>
+              네트워크를 확인하고 다시 시도해주세요.
+            </p>
+            <div className={cx('retry')}>
+              <ActionButton variant="neutralWeak" size="medium" onClick={onRetry}>
+                다시 시도
+              </ActionButton>
+            </div>
+          </div>
+        ) : (
+          <div className={cx('empty')}>
+            <div className={cx('emptyIcon')}>
+              <IconDumbbellLine width={32} height={32} />
+            </div>
+            <p className={cx('emptyTitle')}>아직 기록이 없어요</p>
+            <p className={cx('emptyText')}>
+              아래 + 버튼으로 첫 운동을 기록해보세요.
+            </p>
           </div>
         )}
       </main>

@@ -40,6 +40,9 @@ export default function Page() {
       email={store.email}
       groups={store.groups}
       entries={store.entries}
+      syncing={store.syncing}
+      loadError={store.loadError}
+      onRetry={store.refetch}
       onAdd={store.addEntry}
       onUpdate={store.updateEntry}
       onDelete={store.removeEntry}
