@@ -48,6 +48,10 @@
   color: var(--seed-color-fg-neutral-muted);
 }
 
+.retry {
+  margin-top: 16px;
+}
+
 .fab {
   position: fixed;
   right: max(16px, calc((100vw - var(--app-max-width)) / 2 + 16px));
