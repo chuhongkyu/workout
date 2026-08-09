@@ -6,6 +6,8 @@ import { workoutStore } from '@/lib/store';
 
 export type { NewWorkoutInput } from '@/lib/store';
 
+export type StoreApi = ReturnType<typeof useStore>;
+
 export function useStore() {
   const snapshot = useSyncExternalStore(
     workoutStore.subscribe,
