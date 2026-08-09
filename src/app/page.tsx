@@ -1,8 +1,8 @@
 'use client';
 
+import { AppShell } from '@/components/app/AppShell';
 import { Login } from '@/components/auth/Login';
 import { SupabaseNotice } from '@/components/auth/SupabaseNotice';
-import { HomeView } from '@/components/home/HomeView';
 import { Onboarding } from '@/components/onboarding/Onboarding';
 import { useStore } from '@/hooks/useStore';
 
@@ -34,22 +34,5 @@ export default function Page() {
     return <Onboarding onSubmit={store.setName} />;
   }
 
-  return (
-    <HomeView
-      userName={store.profileName}
-      email={store.email}
-      groups={store.groups}
-      entries={store.entries}
-      syncing={store.syncing}
-      loadError={store.loadError}
-      onRetry={store.refetch}
-      onAdd={store.addEntry}
-      onUpdate={store.updateEntry}
-      onDelete={store.removeEntry}
-      onReorder={store.reorderWithinDate}
-      onRename={store.setName}
-      onResetAll={store.resetAll}
-      onSignOut={store.signOut}
-    />
-  );
+  return <AppShell store={store} />;
 }
