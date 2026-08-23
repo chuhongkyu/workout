@@ -5,9 +5,10 @@ import { IconXmarkLine } from '@karrotmarket/react-monochrome-icon';
 import classNames from 'classnames/bind';
 import { useState } from 'react';
 import { TextField } from '@/components/ui/TextField';
-import { CATEGORY_LIST } from '@/lib/categories';
+import { LIFTS, LIFT_META } from '@/lib/bigThree';
+import { CATEGORY_LIST, CATEGORY_META } from '@/lib/categories';
 import { kstDateString } from '@/lib/date';
-import type { Category, WorkoutEntry } from '@/lib/types';
+import type { Category, Lift, WorkoutEntry } from '@/lib/types';
 import type { NewWorkoutInput } from '@/hooks/useStore';
 import styles from '@/components/add/AddWorkoutSheet.module.scss';
 
@@ -36,6 +37,7 @@ export function AddWorkoutSheet({
   onSubmit,
 }: AddWorkoutSheetProps) {
   const isEdit = Boolean(initial);
+  const [lift, setLift] = useState<Lift | null>(initial?.lift ?? null);
   const [name, setName] = useState(initial?.name ?? '');
   const [category, setCategory] = useState<Category>(initial?.category ?? 'lower');
   const [sets, setSets] = useState(initial ? String(initial.sets) : '3');
@@ -45,20 +47,27 @@ export function AddWorkoutSheet({
   );
   const [date, setDate] = useState(() => initial?.date ?? kstDateString());
 
+  // 3대 운동 선택 시 이름·부위는 자동
+  const effectiveName = lift ? LIFT_META[lift].name : name.trim();
+  const effectiveCategory = lift ? LIFT_META[lift].category : category;
+
   const canSubmit =
-    name.trim().length > 0 && toPositiveInt(sets) > 0 && toPositiveInt(reps) > 0;
+    effectiveName.length > 0 &&
+    toPositiveInt(sets) > 0 &&
+    toPositiveInt(reps) > 0;
 
   const handleSubmit = () => {
     if (!canSubmit) {
       return;
     }
     onSubmit({
-      name: name.trim(),
-      category,
+      name: effectiveName,
+      category: effectiveCategory,
       sets: toPositiveInt(sets, 1),
       reps: toPositiveInt(reps, 1),
       weight: toWeight(weight),
       date,
+      lift,
     });
     onClose();
   };
@@ -92,30 +101,25 @@ export function AddWorkoutSheet({
 
         <div className={cx('form')}>
           <div className={cx('field')}>
-            <span className={cx('label')}>운동명</span>
-            <TextField
-              value={name}
-              onValueChange={setName}
-              placeholder="예: 스쿼트"
-              maxLength={30}
-              aria-label="운동명"
-              autoFocus
-            />
-          </div>
-
-          <div className={cx('field')}>
-            <span className={cx('label')}>부위</span>
+            <span className={cx('label')}>3대 운동</span>
             <div className={cx('categories')}>
-              {CATEGORY_LIST.map((meta) => (
+              <button
+                type="button"
+                className={cx('categoryChip', { selected: lift === null })}
+                style={{ ['--chip-color' as string]: 'var(--seed-color-fg-neutral)' }}
+                onClick={() => setLift(null)}
+                aria-pressed={lift === null}
+              >
+                일반
+              </button>
+              {LIFTS.map((meta) => (
                 <button
                   key={meta.id}
                   type="button"
-                  className={cx('categoryChip', {
-                    selected: category === meta.id,
-                  })}
-                  style={{ ['--chip-color' as string]: meta.colorVar }}
-                  onClick={() => setCategory(meta.id)}
-                  aria-pressed={category === meta.id}
+                  className={cx('categoryChip', { selected: lift === meta.id })}
+                  style={{ ['--chip-color' as string]: 'var(--bf-green)' }}
+                  onClick={() => setLift(meta.id)}
+                  aria-pressed={lift === meta.id}
                 >
                   <span className={cx('chipEmoji')}>{meta.emoji}</span>
                   {meta.label}
@@ -123,6 +127,50 @@ export function AddWorkoutSheet({
               ))}
             </div>
           </div>
+
+          {lift === null ? (
+            <>
+              <div className={cx('field')}>
+                <span className={cx('label')}>운동명</span>
+                <TextField
+                  value={name}
+                  onValueChange={setName}
+                  placeholder="예: 랫풀다운"
+                  maxLength={30}
+                  aria-label="운동명"
+                />
+              </div>
+
+              <div className={cx('field')}>
+                <span className={cx('label')}>부위</span>
+                <div className={cx('categories')}>
+                  {CATEGORY_LIST.map((meta) => (
+                    <button
+                      key={meta.id}
+                      type="button"
+                      className={cx('categoryChip', {
+                        selected: category === meta.id,
+                      })}
+                      style={{ ['--chip-color' as string]: meta.colorVar }}
+                      onClick={() => setCategory(meta.id)}
+                      aria-pressed={category === meta.id}
+                    >
+                      <span className={cx('chipEmoji')}>{meta.emoji}</span>
+                      {meta.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className={cx('liftInfo')}>
+              <span className={cx('liftName')}>{LIFT_META[lift].name}</span>
+              <span className={cx('liftMeta')}>
+                {CATEGORY_META[LIFT_META[lift].category].label} · 무게가 업적의 3대에
+                반영돼요
+              </span>
+            </div>
+          )}
 
           <div className={cx('row')}>
             <div className={cx('field')}>

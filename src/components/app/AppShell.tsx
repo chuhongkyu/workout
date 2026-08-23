@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { AchievementsView } from '@/components/achievements/AchievementsView';
 import { BottomNav, type TabKey } from '@/components/app/BottomNav';
 import { ComingSoon } from '@/components/app/ComingSoon';
 import { HomeView } from '@/components/home/HomeView';
@@ -32,10 +33,10 @@ export function AppShell({ store }: AppShellProps) {
           onResetAll={store.resetAll}
           onSignOut={store.signOut}
         />
-      ) : tab === 'friends' ? (
-        <ComingSoon tab="friends" />
+      ) : tab === 'achievements' ? (
+        <AchievementsView entries={store.entries} />
       ) : (
-        <ComingSoon tab="map" />
+        <ComingSoon tab="friends" />
       )}
 
       <BottomNav active={tab} onChange={setTab} />

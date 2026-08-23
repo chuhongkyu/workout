@@ -1,5 +1,5 @@
 import { getSupabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { Category, WorkoutEntry } from '@/lib/types';
+import type { Category, Lift, WorkoutEntry } from '@/lib/types';
 
 export interface NewWorkoutInput {
   name: string;
@@ -8,6 +8,7 @@ export interface NewWorkoutInput {
   weight: number;
   category: Category;
   date: string;
+  lift?: Lift | null;
 }
 
 export type AuthStatus = 'loading' | 'signed_out' | 'signed_in';
@@ -40,6 +41,7 @@ interface WorkoutRow {
   date: string;
   sort_order: number;
   created_at: string;
+  lift: Lift | null;
 }
 
 const SERVER_SNAPSHOT: StoreSnapshot = {
@@ -136,6 +138,7 @@ function rowToEntry(row: WorkoutRow): WorkoutEntry {
     date: row.date,
     order: row.sort_order,
     createdAt: new Date(row.created_at).getTime(),
+    lift: row.lift ?? null,
   };
 }
 
@@ -397,6 +400,7 @@ export const workoutStore = {
       date: input.date,
       createdAt: Date.now(),
       order: minOrder - 1,
+      lift: input.lift ?? null,
     };
     applyEntries([...snapshot.entries, entry]);
 
@@ -410,6 +414,7 @@ export const workoutStore = {
       category: entry.category,
       date: entry.date,
       sort_order: entry.order,
+      lift: entry.lift,
     });
     if (error) {
       void fetchAll(uid);
@@ -433,6 +438,7 @@ export const workoutStore = {
               weight: input.weight,
               category: input.category,
               date: input.date,
+              lift: input.lift ?? null,
             }
           : e,
       ),
@@ -446,6 +452,7 @@ export const workoutStore = {
         weight: input.weight,
         category: input.category,
         date: input.date,
+        lift: input.lift ?? null,
       })
       .eq('id', id);
     if (error) {
