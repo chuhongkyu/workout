@@ -1,0 +1,139 @@
+.page {
+  max-width: var(--app-max-width);
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--seed-color-bg-layer-basement);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  padding: calc(env(safe-area-inset-top) + 12px) var(--app-gutter) 8px;
+  background: var(--seed-color-bg-layer-default);
+}
+
+.brand {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--seed-color-fg-neutral);
+}
+
+.main {
+  padding: 16px var(--app-gutter) calc(env(safe-area-inset-bottom) + 120px);
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 20px 24px;
+  border-radius: var(--seed-radius-r3);
+  background:
+    radial-gradient(
+      120% 120% at 50% 0%,
+      color-mix(in srgb, var(--bf-green) 18%, transparent),
+      transparent 70%
+    ),
+    var(--seed-color-bg-layer-default);
+  border: 1px solid color-mix(in srgb, var(--bf-green) 22%, transparent);
+}
+
+.heroIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--seed-radius-full);
+  background: var(--seed-color-bg-brand-solid);
+  color: var(--bf-on-green);
+  margin-bottom: 12px;
+}
+
+.heroLabel {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--seed-color-fg-neutral-muted);
+}
+
+.heroTotal {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+}
+
+.heroNum {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--bf-green);
+}
+
+.heroUnit {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--seed-color-fg-neutral-subtle);
+}
+
+.heroHint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--seed-color-fg-neutral-muted);
+}
+
+.cards {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  border-radius: var(--seed-radius-r2);
+  background: var(--seed-color-bg-layer-default);
+  border: 1px solid var(--seed-color-stroke-neutral-subtle);
+}
+
+.cardEmoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.cardLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--seed-color-fg-neutral-muted);
+}
+
+.cardValue {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--seed-color-fg-neutral);
+}
+
+.empty {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--seed-color-fg-neutral-subtle);
+}
+
+.note {
+  margin: 20px 4px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--seed-color-fg-neutral-muted);
+
+  b {
+    color: var(--bf-green);
+    font-weight: 700;
+  }
+}

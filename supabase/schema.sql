@@ -33,8 +33,13 @@ create table if not exists public.workouts (
   category   text not null check (category in ('lower', 'upper', 'core', 'cardio')),
   date       text not null,          -- KST 기준 'YYYY-MM-DD'
   sort_order integer not null default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- 3대 운동으로 지정된 경우 종목 (일반 기록은 null)
+  lift       text check (lift in ('squat', 'bench', 'deadlift'))
 );
+
+-- 기존 프로젝트라면 아래 한 줄만 SQL Editor에서 실행하면 됩니다:
+--   alter table public.workouts add column if not exists lift text check (lift in ('squat','bench','deadlift'));
 
 create index if not exists workouts_user_date_idx
   on public.workouts (user_id, date);

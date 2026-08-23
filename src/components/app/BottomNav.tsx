@@ -3,22 +3,22 @@
 import {
   IconDumbbellFill,
   IconDumbbellLine,
-  IconMapFill,
-  IconMapLine,
   IconPeople3Fill,
   IconPeople3Line,
+  IconTrophyFill,
+  IconTrophyLine,
 } from '@karrotmarket/react-monochrome-icon';
 import classNames from 'classnames/bind';
 import styles from '@/components/app/BottomNav.module.scss';
 
 const cx = classNames.bind(styles);
 
-export type TabKey = 'record' | 'friends' | 'map';
+export type TabKey = 'record' | 'achievements' | 'friends';
 
 const TABS = [
   { key: 'record', label: '기록', Line: IconDumbbellLine, Fill: IconDumbbellFill },
+  { key: 'achievements', label: '업적', Line: IconTrophyLine, Fill: IconTrophyFill },
   { key: 'friends', label: '친구', Line: IconPeople3Line, Fill: IconPeople3Fill },
-  { key: 'map', label: '지도', Line: IconMapLine, Fill: IconMapFill },
 ] as const;
 
 interface BottomNavProps {
