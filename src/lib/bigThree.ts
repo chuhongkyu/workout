@@ -12,7 +12,7 @@ export interface LiftMeta {
 export const LIFTS: LiftMeta[] = [
   { id: 'squat', label: '스쿼트', name: '스쿼트', category: 'lower', emoji: '🦵' },
   { id: 'bench', label: '벤치프레스', name: '벤치프레스', category: 'upper', emoji: '💪' },
-  { id: 'deadlift', label: '데드리프트', name: '데드리프트', category: 'lower', emoji: '🏋️' },
+  { id: 'deadlift', label: '데드리프트', name: '데드리프트', category: 'fullbody', emoji: '🏋️' },
 ];
 
 export const LIFT_META: Record<Lift, LiftMeta> = {
