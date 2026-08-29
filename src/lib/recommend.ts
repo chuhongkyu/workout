@@ -31,7 +31,14 @@ export function recommend(
     };
   }
 
-  const counts: Record<Category, number> = { lower: 0, upper: 0, core: 0, cardio: 0 };
+  // 전신(fullbody)은 집계엔 포함하되 추천 대상(ALL_CATEGORIES)에서는 제외
+  const counts: Record<Category, number> = {
+    lower: 0,
+    upper: 0,
+    core: 0,
+    fullbody: 0,
+    cardio: 0,
+  };
   let recentTotal = 0;
 
   for (const entry of entries) {
