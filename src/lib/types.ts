@@ -1,4 +1,4 @@
-export type Category = 'lower' | 'upper' | 'core' | 'cardio';
+export type Category = 'lower' | 'upper' | 'core' | 'fullbody' | 'cardio';
 
 /** 3대 운동 (스쿼트·벤치프레스·데드리프트) */
 export type Lift = 'squat' | 'bench' | 'deadlift';

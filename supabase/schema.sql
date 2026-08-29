@@ -30,7 +30,7 @@ create table if not exists public.workouts (
   sets       integer not null default 1,
   reps       integer not null default 0,
   weight     numeric not null default 0,
-  category   text not null check (category in ('lower', 'upper', 'core', 'cardio')),
+  category   text not null check (category in ('lower', 'upper', 'core', 'fullbody', 'cardio')),
   date       text not null,          -- KST 기준 'YYYY-MM-DD'
   sort_order integer not null default 0,
   created_at timestamptz not null default now(),
@@ -38,8 +38,15 @@ create table if not exists public.workouts (
   lift       text check (lift in ('squat', 'bench', 'deadlift'))
 );
 
--- 기존 프로젝트라면 아래 한 줄만 SQL Editor에서 실행하면 됩니다:
+-- 기존 프로젝트 마이그레이션 (SQL Editor에서 실행):
+--   -- 3대 컬럼 (아직 없다면)
 --   alter table public.workouts add column if not exists lift text check (lift in ('squat','bench','deadlift'));
+--   -- '전신' 카테고리 허용하도록 체크 제약 갱신
+--   alter table public.workouts drop constraint if exists workouts_category_check;
+--   alter table public.workouts add constraint workouts_category_check
+--     check (category in ('lower','upper','core','fullbody','cardio'));
+--   -- (선택) 기존 데드리프트 기록을 전신으로 이동
+--   update public.workouts set category = 'fullbody' where lift = 'deadlift';
 
 create index if not exists workouts_user_date_idx
   on public.workouts (user_id, date);
